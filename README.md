@@ -1,47 +1,84 @@
-# PIDOG
+# PiDog coding workspace
 
-Custom code and notes for a [SunFounder PiDog](https://docs.sunfounder.com/projects/pidog/en/latest/) — a Raspberry Pi robot dog with 12 servos, camera, ultrasonic sensing, touch, IMU, and RGB lighting.
+This folder is the safe place for custom PiDog code. The official SunFounder
+libraries and examples live on the Raspberry Pi in `~/robot-hat`, `~/vilib`,
+and `~/pidog`; this project deploys to `~/pidog-coding` on the Pi.
 
-This repository is for project scripts and experiments. Official kit examples and libraries live in SunFounder's docs and [pidog](https://github.com/sunfounder/pidog) repo.
+## Connection
 
-## Hardware
+- SSH user: `buck`
+- Hostname: `buck.local`
+- Default target: `buck@buck.local`
 
-- Raspberry Pi (3B+/4/5 or Zero 2W; use PiDog V2 for Pi 5)
-- SunFounder PiDog kit (Robot HAT, servos, camera, sensors)
-- Raspberry Pi is not included with the kit
-
-## Setup
-
-On the Pi, install the official libraries first:
+Test the connection from the Mac:
 
 ```bash
-# Robot HAT
-git clone -b 2.5.x https://github.com/sunfounder/robot-hat.git --depth 1
-cd robot-hat && sudo python3 install.py
-
-# Vilib (camera / vision)
-git clone https://github.com/sunfounder/vilib.git
-cd vilib && sudo python3 install.py
-
-# PiDog
-git clone https://github.com/sunfounder/pidog.git --depth 1
-cd pidog && sudo pip3 install . --break-system-packages
+ssh buck@buck.local
 ```
 
-Calibrate servos before running motion code. For V2, press the Robot HAT **ZERO** button during assembly, then run `0_calibration.py` from the official examples.
-
-## This repo
-
-Clone onto the Pi (or pull into this workspace on your computer):
+The scripts also accept a different target when needed:
 
 ```bash
-git clone https://github.com/JonathanZ14-dev/PIDOG.git
-cd PIDOG
+PIDOG_TARGET=buck@192.168.0.151 ./scripts/deploy.sh
 ```
 
-Add Python scripts here as you build behaviors (walk, sit, follow, camera, voice, and so on).
+## First-time setup
 
-## Resources
+Run these commands from this folder on the Mac:
+
+```bash
+./scripts/deploy.sh
+ssh -t buck@buck.local 'bash ~/pidog-coding/scripts/setup_pi.sh'
+./scripts/check_remote.sh
+```
+
+`setup_pi.sh` follows SunFounder's current installation sequence for Robot HAT,
+Vilib, and PiDog. It requires 64-bit Raspberry Pi OS and does not move servos.
+
+### Calibrate before motion
+
+Do not run custom motion code until calibration is complete. Put PiDog on a flat,
+safe platform, have the correct 60-degree or 90-degree calibration ruler ready,
+and run:
+
+```bash
+ssh -t buck@buck.local
+cd ~/pidog/examples
+sudo python3 0_calibration.py
+```
+
+For PiDog V2, the Robot HAT zero button handles servo zeroing, but the calibration
+program is still required. Follow the physical alignment steps in the official
+[calibration guide](https://docs.sunfounder.com/projects/pidog/en/latest/python/py_0_calibrate.html).
+
+### Audio
+
+PiDog examples run with `sudo`, which does not use the desktop PipeWire session.
+`scripts/setup_audio.sh` makes the Robot HAT speaker the system ALSA default so
+`Music()` works as root. Without that, wake-up fails with
+`'Pidog' object has no attribute 'music'`.
+
+```bash
+ssh -t buck@buck.local 'bash ~/pidog-coding/scripts/setup_audio.sh'
+```
+
+If the googlevoicehat card is missing after that, reboot the Pi and run the
+script again.
+
+## Everyday workflow
+
+Edit files under `src/`, then use:
+
+```bash
+./scripts/deploy.sh          # copy this workspace to the Pi
+./scripts/check_remote.sh    # verify modules without moving PiDog
+./scripts/run_hello.sh       # guarded sit/wag/bark demo; moves PiDog
+```
+
+The same commands are available in VS Code under **Terminal > Run Task**.
+
+## Official resources
 
 - [PiDog documentation](https://docs.sunfounder.com/projects/pidog/en/latest/)
-- [Official pidog library](https://github.com/sunfounder/pidog)
+- [Install all modules](https://docs.sunfounder.com/projects/pidog/en/latest/python/python_start/install_all_modules.html)
+- [SunFounder PiDog source](https://github.com/sunfounder/pidog)

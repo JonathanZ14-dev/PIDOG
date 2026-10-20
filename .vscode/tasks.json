@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PiDog: Deploy",
+      "type": "shell",
+      "command": "./scripts/deploy.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "PiDog: Check (no movement)",
+      "type": "shell",
+      "command": "./scripts/deploy.sh && ./scripts/check_remote.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "PiDog: Hello (moves robot)",
+      "type": "shell",
+      "command": "./scripts/deploy.sh && ./scripts/run_hello.sh",
+      "problemMatcher": []
+    }
+  ]
+}

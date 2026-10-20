@@ -1,0 +1,8 @@
+# PiDog calibration backup saved on 2026-10-20.
+# Ruler: 60 degree
+
+legs_servo_offset_list = [11.868131868131872, 8.791208791208794, -1.3186813186813189, -2.197802197802198, -0.8791208791208791, -1.3186813186813189, -7.472527472527476, -1.3186813186813189]
+
+head_servo_offset_list = [0.0, 0.0, 0.0]
+
+tail_servo_offset_list = [0.0]
