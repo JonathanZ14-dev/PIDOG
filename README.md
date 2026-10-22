@@ -77,6 +77,11 @@ Edit files under `src/`, then use:
 
 The same commands are available in VS Code under **Terminal > Run Task**.
 
+## Learning notes
+
+- [Voice control](notes/voice_control.md) — microphone, speech recognition,
+  command parsing, safe actions, speech output, and optional conversational AI.
+
 ## Official resources
 
 - [PiDog documentation](https://docs.sunfounder.com/projects/pidog/en/latest/)

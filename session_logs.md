@@ -350,3 +350,203 @@ commands were sent.
   target at a measured 30 cm from the faces of the two ultrasonic transducers
   and verify that nothing else (the stand, a hand, wiring, or part of the robot)
   is blocking their forward field of view.
+
+### SSH connection diagnostic
+
+- A new connection attempt to `buck@buck.local` failed because the hostname
+  did not resolve to an IP address; authentication was never reached.
+- Confirmed the Mac was connected on the `192.168.0.0/24` local network.
+- Tested Buck's documented fallback address, `192.168.0.151`, directly:
+  - ICMP: no response (`No route to host` / 100% packet loss)
+  - SSH port 22: connection timed out
+- No device visible in the Mac's current neighbor table presented Buck's saved
+  SSH host key.
+- Current conclusion: Buck is not connected to the local network. Check Pi
+  power/boot status and Wi-Fi connectivity before retrying SSH.
+- Physically confirmed that the Raspberry Pi Zero 2 W green status LED turns
+  on, flickers during startup, and then becomes solid.
+- Retried `buck.local` and `192.168.0.151`; both remained unreachable.
+- Checked SSH port 22 across the Mac's current `192.168.0.0/24` subnet. No SSH
+  service was found, so Buck is not simply using a different address on that
+  subnet.
+- Next diagnostic: confirm the Mac is using the same Wi-Fi network whose name
+  and password were configured on Buck's microSD card.
+- Confirmed the Mac is connected to the same Wi-Fi network originally
+  configured for Buck.
+- Performed a recovery restart with Buck physically switched on and allowed to
+  boot before testing again.
+- `buck.local`, `192.168.0.151`, and the complete local subnet still showed no
+  SSH service after the confirmed powered-on boot.
+- Current conclusion: Buck's stored Wi-Fi connection or the Raspberry Pi OS
+  networking service must be inspected locally. Raspberry Pi OS Trixie uses
+  NetworkManager, so the legacy boot-partition `wpa_supplicant.conf` recovery
+  method should not be used.
+
+### Network recovery decision
+
+- A monitor/keyboard local console is not available.
+- Decided to reflash the microSD card with Raspberry Pi OS Lite (64-bit) using
+  Raspberry Pi Imager and configure the hostname, user, Wi-Fi, and SSH during
+  imaging.
+- Confirmed the important recoverable state is stored on the Mac:
+  - Project code, setup scripts, and session history are in this workspace.
+  - The eight-servo calibration backup is in
+    `calibration/pidog.conf.2026-10-20`.
+- Reflashing will erase installed packages and Pi-only files. After first boot,
+  reinstall the software modules, restore the calibration file, verify the
+  no-motion health check, and only then run movement examples.
+
+## 2026-10-22 — Non-destructive Wi-Fi recovery
+
+### Recovery plan revised
+
+- Chose not to reflash the microSD card because that would erase Buck's
+  installed packages and Pi-only files.
+- Mounted the existing Raspberry Pi boot partition on the Mac and confirmed
+  that its saved network configuration still contained a Wi-Fi network and
+  password. The credentials were preserved and were not printed or copied into
+  this project.
+- Confirmed that earlier USB-gadget troubleshooting changes were still present
+  in `config.txt` and `cmdline.txt`.
+
+### SD-card changes
+
+- Created timestamped backups of the current boot configuration, cloud-init
+  files, and network configuration on the SD card before changing anything.
+- Restored the original `config.txt` and removed the temporary USB Ethernet
+  gadget boot commands from `cmdline.txt`.
+- Retained the PiDog audio overlay and the original hardware configuration.
+- Installed a minimal one-time cloud-init seed with a new instance ID to:
+  - Reapply the existing Wi-Fi profile.
+  - Keep the hostname as `buck`.
+  - Enable and start SSH.
+- Verified that all staged files were written correctly and that the saved
+  network configuration remained byte-for-byte unchanged.
+- Safely ejected the microSD card. No Linux installation, project code,
+  calibration data, or installed package was erased.
+
+### Connection verification
+
+- After Buck booted, confirmed that it rejoined the network at
+  `192.168.0.151`.
+- Compared the SSH host fingerprints at that address with the fingerprints
+  already saved for `buck.local`; all three fingerprints matched, confirming
+  the device was Buck before connecting.
+- Successfully connected using both the verified IP address and the normal
+  command:
+
+  ```bash
+  ssh buck@buck.local
+  ```
+
+- Verified without sending any servo or body-motion commands:
+  - Hostname: `buck`
+  - SSH service: active
+  - Avahi/mDNS service: active and advertising `buck.local`
+  - `pidog` Python module: present
+  - `robot_hat` Python module: present
+  - `vilib` Python module: present
+
+### Current status
+
+- Wi-Fi and SSH recovery is complete.
+- Buck's existing software installation and servo calibration were preserved.
+- Buck is ready for continued speaker, ultrasonic-sensor, and example-program
+  testing.
+
+### Persistent Zero 2 W Wi-Fi stability fix
+
+- Confirmed the boot image is Raspberry Pi OS Trixie built on 2026-10-06 and
+  the compressed kernel is `6.18.50+rpt-rpi-v8`.
+- This exactly matches the kernel family in a current Raspberry Pi Zero 2 W
+  Wi-Fi regression report involving the BCM43430 adapter.
+- Backed up the current boot and cloud-init files on the SD card.
+- Added `brcmfmac.feature_disable=0x2282000` to the kernel command line.
+- Added a persistent NetworkManager configuration with `wifi.powersave = 2`.
+- Preserved the saved Wi-Fi profile byte-for-byte.
+- Verified after boot that:
+  - The kernel feature flag is active.
+  - Wi-Fi power saving changes from enabled to disabled during startup.
+  - NetworkManager reports `wlan0` connected at `192.168.0.151`.
+  - The Pi reports no present or historical undervoltage (`throttled=0x0`).
+- Completed a five-minute continuous SSH test with 16 checks. Every check
+  reported connected state and carrier, with signal readings from 54% to 63%.
+
+### Voice-control learning project started
+
+- Created `notes/voice_control.md` as the living notebook for architecture,
+  concepts, experiments, and results.
+- Confirmed the Robot HAT exposes both playback and capture hardware.
+- Confirmed the installed offline voice stack includes Vosk, Piper, PortAudio,
+  and SunFounder's voice-assistant package.
+- Added `src/voice_control/01_record_and_measure.py`, a microphone-only test
+  that does not initialize `Pidog` or move servos.
+- Completed the first microphone recording test:
+  - Format: 16 kHz, mono, signed 16-bit PCM
+  - Duration: 4.000 seconds
+  - Peak: -9.2 dBFS
+  - RMS: -38.4 dBFS
+  - Clipped samples: 0.000%
+- Concluded that the microphone capture path is working and produces a usable,
+  unclipped signal.
+- Added `src/voice_control/02_transcribe_once.py` for one offline Vosk
+  transcription without initializing PiDog motion hardware.
+- The first Vosk attempts recognized only `huh` and `ah` rather than the spoken
+  sentence.
+- Found the Robot HAT microphone soft-volume control at 51% (0 dB) and raised
+  it to 75% (+12.2 dB) for a conservative speech-recognition retest.
+- Replayed `/tmp/buck-microphone-test.wav` through Buck's default audio device
+  to confirm that saved microphone tests can be audited by ear.
+- Updated the Vosk lesson to save each exact input as
+  `/tmp/buck-vosk-last.wav`, report its levels, transcribe the saved samples,
+  and print the matching replay command.
+- The controlled 75%-gain retest succeeded:
+  - Peak: -6.0 dBFS
+  - RMS: -29.3 dBFS
+  - Clipped samples: 0.000%
+  - Vosk produced the correct spoken transcription.
+- Added lesson 3's pure-Python command parser, interactive simulator, and unit
+  tests. The parser maps only approved phrases to internal action names and is
+  not connected to PiDog motion.
+- Refactored recording and offline Vosk transcription into a reusable
+  `speech_input.py` component.
+- Added `04_voice_command_preview.py`, which connects microphone capture, Vosk,
+  and the allowlist parser while keeping PiDog motion disabled.
+- Added `05_voice_move_once.py` and a separately tested motion dispatcher for
+  one guarded voice-triggered physical action.
+- The first voice-motion layer supports only sit, stand, lie, and four tail
+  wags; walking and turning remain intentionally disabled.
+- Execution requires explicit `--execute`, `--i-have-calibrated`, and
+  `--on-stand` flags and initializes PiDog only after recognition and safety
+  validation succeed.
+- Added `06_active_voice_control.py` for repeated offline voice-command rounds.
+- Updated the active loop to accept bare allowlisted commands without requiring
+  "Hey Buck." The `stop` command and Ctrl+C still exit the program.
+- Reused one Vosk model across rounds and reset its recognizer after each final
+  transcript. The latest WAV is overwritten at
+  `/tmp/buck-active-command-last.wav` so recordings do not accumulate.
+- Preserved the motion allowlist: only sit, stand, lie, and a bounded tail wag
+  can execute. The loop waits for each action to finish before listening again,
+  so walking remains disabled and `stop` cannot be heard during an action.
+- Physical loop execution still requires all three safety flags: `--execute`,
+  `--i-have-calibrated`, and `--on-stand`.
+- Ran the complete voice-control test suite locally and again on Buck: all 16
+  tests passed. Python compilation and the Pi-side command-line help check also
+  passed.
+- Verified that physical mode refuses to start when the calibration and stand
+  confirmation flags are missing.
+- Deployed the latest voice-control code and notes to
+  `~/pidog-coding` on Buck.
+
+### End-of-session voice-control status
+
+- Continuous offline listening is implemented and ready for a supervised
+  stand test.
+- The physical continuous loop was not started during this step because Buck's
+  stand placement and clear leg/tail space still need a fresh confirmation.
+- Next test command, after physically checking Buck:
+
+  ```bash
+  python3 ~/pidog-coding/src/voice_control/06_active_voice_control.py \
+    --execute --i-have-calibrated --on-stand
+  ```
