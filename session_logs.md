@@ -550,3 +550,42 @@ commands were sent.
   python3 ~/pidog-coding/src/voice_control/06_active_voice_control.py \
     --execute --i-have-calibrated --on-stand
   ```
+
+---
+
+## 2026-10-27 — Obstacle-course learning project started
+
+### Proposal and learning documents
+
+- Drafted `vision_vs_ultrasonic_project1/project_proposal.md` for a repeatable
+  course comparison using vision only, ultrasonic only, and both sensors.
+- Added `system_diagram.md` to trace physical signals separately from the
+  Python sensing, decision, and movement path. The D1/GPIO 4 trigger and
+  D0/GPIO 17 echo labels agree with the prior sensor diagnostics and
+  SunFounder's PiDog documentation.
+- Added `system_diagram_notes.md` as a worksheet for Buck's physical layout,
+  explanations in our own words, predictions, questions, and items still to
+  verify. The diagram is the current first lesson; sensor checks come after it.
+- Linked the diagram, worksheet, and stationary sensor lessons from the
+  proposal.
+
+### First stationary sensor script
+
+- Added `01_measure_ultrasonic.py` to take a finite set of D1/D0 ultrasonic
+  readings with a measured target distance, print valid/invalid results and a
+  median, and optionally save a CSV on Buck. It does not initialize `Pidog` or
+  command motion.
+- Checked Python syntax and command-line help locally. A simulated sensor run
+  confirmed that valid readings and a `-1` reading are labeled correctly and
+  written to CSV.
+- No live Buck reading or deployment occurred. `buck.local` did not resolve
+  during this session, and Buck's current network address has not been
+  confirmed. Camera capture and ultrasonic accuracy remain unverified for this
+  project.
+
+### Next step
+
+- Work through the system diagram and fill in the notes worksheet together.
+- Then reconnect to Buck and measure a broad, flat target at a known distance
+  while Buck stays still. Do not choose a movement threshold from the earlier
+  unmeasured sonar readings.
