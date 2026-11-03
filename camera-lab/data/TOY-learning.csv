@@ -1,0 +1,11 @@
+scene_id,split,blue_ratio,obstacle,description
+T1,train,0.00,0,synthetic empty floor
+T2,train,0.02,0,synthetic small blue speck
+T3,train,0.20,1,synthetic blue box
+T4,train,0.35,1,synthetic large blue box
+V1,validation,0.01,0,synthetic empty floor
+V2,validation,0.25,1,synthetic blue box
+E1,test,0.00,0,synthetic empty floor
+E2,test,0.22,1,synthetic blue box
+E3,test,0.00,1,synthetic red obstacle
+E4,test,0.30,0,synthetic flat blue floor marking

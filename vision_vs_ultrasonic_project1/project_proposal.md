@@ -31,7 +31,7 @@ These are design choices for the first experiment. We can revise them after the 
 
 Each step should leave us with a small program or observation that works on its own.
 
-Working documents: [system diagram](system_diagram.md), [diagram notes worksheet](system_diagram_notes.md), and [stationary sensor lessons](learning_notes.md).
+Working documents: [system diagram](system_diagram.md), [diagram notes worksheet](system_diagram_notes.md), [pre-course experiment sessions](experiment_sessions.md), and [experiment notebook](experiment_notebook.md). The [ultrasonic lesson](learning_notes.md) supports the first sensor session.
 
 | Step | What we will learn | Evidence before moving on |
 | --- | --- | --- |

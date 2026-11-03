@@ -1,6 +1,8 @@
 # Sensor lessons (after the system diagram)
 
-Start with [system_diagram.md](system_diagram.md) and write in [system_diagram_notes.md](system_diagram_notes.md). This file begins the stationary sensor checks after we understand the system map.
+Start with [system_diagram.md](system_diagram.md) and write in [system_diagram_notes.md](system_diagram_notes.md). Then follow the [pre-course sessions](experiment_sessions.md) and take notes in [the experiment notebook](experiment_notebook.md). This file supports the first stationary sensor check.
+
+For a closer look at the script's terminal options, use the [argument-parsing lesson and notes](lesson_terminal_arguments.md).
 
 ## The first ultrasonic Python call
 
@@ -36,4 +38,4 @@ The script introduces `argparse` for command-line values, a `for` loop for repea
 - What does a `-1` reading tell us about this measurement? What does it **not** tell us about the space in front of Buck?
 - If a target is physically 30 cm away but the median reading is 6 cm, which physical setup details would you inspect before changing the code?
 
-The next lesson will inspect camera frames and their pixel coordinates, also without moving Buck.
+The [next session](experiment_sessions.md#session-2--one-frame-from-the-camera) will inspect a camera image, also without moving Buck.

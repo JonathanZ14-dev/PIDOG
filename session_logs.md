@@ -589,3 +589,47 @@ commands were sent.
 - Then reconnect to Buck and measure a broad, flat target at a known distance
   while Buck stays still. Do not choose a movement threshold from the earlier
   unmeasured sonar readings.
+
+---
+
+## 2026-10-29 — Pre-course experiments prepared
+
+- Added `experiment_sessions.md` and `experiment_notebook.md` to guide five
+  small sessions after the system diagram: measured ultrasonic readings, one
+  camera frame, a paired sensor snapshot, a print-only mode decision preview,
+  and a separate supervised motion check on the stand.
+- Added `02_capture_camera.py` to save one Picamera2 JPEG and
+  `03_capture_pair.py` to save a camera JPEG plus one timestamped ultrasonic
+  reading in JSON. Neither imports or initializes `Pidog`.
+- Added `decision_logic.py` and `04_preview_decision.py` to demonstrate mode
+  isolation and stopping on missing required evidence. The preview uses
+  supplied values and an illustrative threshold; it reads no hardware and
+  sends no movement command.
+- Local verification passed: 21 unit tests, Python compilation, command-line
+  decision examples, and simulated camera/paired-sensor runs. These checks do
+  not establish that Buck's camera or ultrasonic sensor is currently working.
+- Added `lesson_terminal_arguments.md` to explain the ultrasonic script's
+  `parse_args()` function, with exercises and space for learning notes.
+- `buck.local` did not resolve and SSH to Buck's saved `192.168.0.151` address
+  timed out. The user confirmed Buck is not powered or connected yet. No code
+  was deployed, no real sensor data was collected, and no motion was run.
+- Next: review the diagram and notebook together; when Buck is powered,
+  establish SSH and run the stationary ultrasonic and camera sessions before
+  selecting obstacle thresholds or connecting sensing to motion.
+
+---
+
+## 2026-11-03 — Camera lab transferred to Buck
+
+- Found the `camera-lab` folder in the workspace and connected to Buck at its
+  previously recorded IP using the saved `buck.local` SSH host key.
+- Copied the complete folder to `/home/buck/camera-lab`, confirmed its
+  contents, and compared the copied files against the workspace with checksums.
+- Retrieved the existing `captures/blue-center-o1/frame.json` and `frame.svg`
+  from Buck into the matching workspace folder. SHA-256 checksums matched the
+  originals. We did not run a new capture or command motion during the transfer.
+- Re-ran the local test suites: 21 workspace Python tests and 19 camera-lab
+  Python tests passed. The optional browser JavaScript test was not run because
+  the `node` command was unavailable on the Mac.
+- Next: inspect the saved frame and use the camera lab's notebook to record
+  observations and experiments.

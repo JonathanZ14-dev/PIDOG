@@ -36,7 +36,7 @@ The camera's ribbon-to-Pi route is documented by [SunFounder's camera troublesho
 
 ```mermaid
 flowchart LR
-    Cam[Camera software] -->|frame: many pixels| Vision[Vision processing]
+    Cam[Picamera2 camera software] -->|frame: many pixels| Vision[Vision processing]
     US[robot_hat Ultrasonic.read] -->|one distance in cm or invalid value| Range[Range check]
     Vision --> Gate[Mode selector]
     Range --> Gate
@@ -57,6 +57,8 @@ The **mode selector** determines which evidence the decision code may use:
 | Combined | Both | None of these two sensors |
 
 The planned `forward`, `turn`, and `stop` decisions are **software choices**, not raw sensor values. The later motion program will translate a choice into PiDog commands. The stop path is a design requirement; it is not implemented by this diagram.
+
+Our first image experiment uses Picamera2 directly so we can inspect a saved frame. Vilib is installed and may provide higher-level vision functions later, but it is not required for this first capture.
 
 ## 3. The important boundaries
 
@@ -81,4 +83,4 @@ One camera frame contains spatial information but does not directly give a relia
 1. Point to each physical component on Buck and trace the arrows in diagram 1.
 2. Say what crosses each software boundary in diagram 2: pixels, centimeters, a decision, or a servo command.
 3. Fill in the explanations and unknowns in [system_diagram_notes.md](system_diagram_notes.md).
-4. Only after the diagram makes sense, run the stationary sensor lessons in [learning_notes.md](learning_notes.md).
+4. Only after the diagram makes sense, follow the [pre-course experiment sessions](experiment_sessions.md) and take notes in the [experiment notebook](experiment_notebook.md).

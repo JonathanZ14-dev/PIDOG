@@ -1,0 +1,12 @@
+flowchart TD
+ n0["Scene + light: Reflectance, illumination, geometry"]
+ n1["Lens + sensor: Light becomes sampled electrical measurements"]
+ n2["CSI + camera stack: Transfer, sensor control and image processing"]
+ n3["Picamera2 + Pillow: Capture image; make RGB explicit; resize"]
+ n4["Frame object: width, height, row-major RGB values"]
+ n5["Perception functions: Mask, regional fractions and limited claims"]
+ n0 -->|"Light"| n1
+ n1 -->|"Sensor measurements"| n2
+ n2 -->|"Processed image buffer"| n3
+ n3 -->|"RGB pixels"| n4
+ n4 -->|"Explicit input values"| n5
