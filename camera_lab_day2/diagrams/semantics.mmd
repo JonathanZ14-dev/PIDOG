@@ -1,0 +1,10 @@
+flowchart TD
+ n0["Pixels: What values arrived at each image location?"]
+ n1["Visual features: Which locations match a rule or learned pattern?"]
+ n2["Meaning / task labels: Blue region? Box? An obstacle in this path?"]
+ n3["Geometry + uncertainty: Where is it; how fresh and reliable is the evidence?"]
+ n4["Decision boundary: What action is justified by these observations?"]
+ n0 -->|"Color / texture transformations"| n1
+ n1 -->|"Rule or learned model plus task definition"| n2
+ n2 -->|"Additional measurements and assumptions"| n3
+ n3 -->|"Validated policy; no motor connection in this lab"| n4

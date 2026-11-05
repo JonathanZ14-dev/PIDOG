@@ -1,0 +1,10 @@
+flowchart TD
+ n0["capture.py / CameraSource: Own Picamera2; capture once; finally close"]
+ n1["files.py / saved Frame: Persist evidence; load a validated RGB image"]
+ n2["core.py / analyze: Pure mask + regional features + quality rule"]
+ n3["analyze.py / report: Write inspectable JSON, image and mask"]
+ n4["Future live runner: Fresh observations, pose alignment, fusion, bounded action"]
+ n0 -->|"Frame + metadata"| n1
+ n1 -->|"Frame + Settings"| n2
+ n2 -->|"Evidence dictionary"| n3
+ n3 -->|"Requires new integration; saved reports do not drive motors"| n4

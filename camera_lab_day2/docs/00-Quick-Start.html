@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quick Start · Camera lab on your PiDog</title><link rel="stylesheet" href="../style.css"></head><body data-notebook="00-Quick-Start"><header><a href="../index.html">Jonathan · PiDog camera lab</a><span>OBSERVE · EXPLAIN · TEST</span></header><main><nav><a href="00-Quick-Start.html">00 Quick Start</a><a href="01-Session-One.html">01 Session One</a><a href="02-Session-Two.html">02 Session Two</a><a href="04-Glossary-and-Code-Map.html">04 Glossary and Code Map</a><a href="05-Experiment-Notebook.html">05 Experiment Notebook</a><a href="06-Sources.html">06 Sources</a><a href="07-Processing-to-Learned-Features.html">07 Processing to Learned Features</a></nav><div class="toolbar no-print"><button id="json">Export editable JSON</button><button id="markdown">Export notes</button><label>Restore backup <input type="file" accept=".json,application/json" id="restore"></label><button id="print">Print / PDF</button><p id="save-status" role="status">Notes stay in this browser. Export a copy after class.</p></div><h1>Quick Start · Camera lab on your PiDog</h1>
+<p>This is a separate companion package for the two camera sessions. It does not replace your working PiDog installation or the previous obstacle-course kit. Extract the complete ZIP. Open index.html on your laptop for lessons and notes. Run camera commands on the Raspberry Pi through your existing SSH connection. Run fixture analysis and tests on either machine.</p>
+<h2>1 Prepare the physical experiment</h2>
+<p>Use the assembled, calibrated robot, a charged battery, ruler, matte blue paper or a blue-covered box, red paper, a neutral background, and a way to copy files from the Pi. Keep PiDog stationary on a clear floor. Stop other programs that control the robot or own the camera. The supplied camera code sends no servo commands; a separately running app still could.</p>
+<p>Do not reconnect a camera ribbon while powered. If the camera is not detected, shut down and disconnect power before inspecting the cable. Confirm the actual installed camera model rather than assuming every PiDog kit or replacement camera is identical.</p>
+<h2>2 Put the package on the Pi</h2>
+<p>Use your usual file-transfer tool, or run the following on your LAPTOP. Replace YOUR_USER and YOUR_PI_IP with the values from your working SSH connection. The local camera-lab folder must exist in the current laptop directory.</p>
+<pre><code>scp -r camera-lab YOUR_USER@YOUR_PI_IP:~/camera-lab
+ssh YOUR_USER@YOUR_PI_IP
+cd ~/camera-lab
+pwd
+ls</code></pre>
+<p>If you extracted a folder with a different name, rename it camera-lab or adjust the paths. Python commands below run from this project root, the folder containing camera_lab, docs and tests. A command starting with python3 -m loads a module from that location. Do not type the printed shell prompt or the Python &gt;&gt;&gt; prompt as part of a command.</p>
+<h2>3 Record the existing environment before changing it</h2>
+<pre><code>python3 --version
+python3 -m camera_lab.doctor</code></pre>
+<p>The offline lessons require Python 3.9 or later and only its standard library. Live capture needs Raspberry Pi OS with a working modern camera stack, Picamera2 and Pillow. Vilib is optional for the vendor preview. The doctor reports package paths and methods so an unexpected interpreter is visible. Your previous PiDog install may already provide everything needed.</p>
+<p>On newer Raspberry Pi OS, check camera enumeration with:</p>
+<pre><code>rpicam-hello --list-cameras</code></pre>
+<p>If that command does not exist but your older installation provides libcamera-hello, use:</p>
+<pre><code>libcamera-hello --list-cameras</code></pre>
+<p>These are alternatives, not two required installation steps. Do not use legacy raspistill instructions for this package. Camera enumeration confirms discovery, not image quality.</p>
+<p>Only if Picamera2 or Pillow is missing from the system Python, use the Raspberry Pi OS packages:</p>
+<pre><code>sudo apt update
+sudo apt install python3-picamera2 python3-pil</code></pre>
+<p>Prefer the working system interpreter. If you deliberately use a virtual environment, it must see the system camera packages; a tutor can create one with python3 -m venv --system-site-packages .venv. Do not mix random pip upgrades into the working robot image. This lesson does not require installing OpenCV, a neural-network framework, cloud keys or a new OS.</p>
+<h2>4 Prove the offline path first</h2>
+<pre><code>python3 -m unittest discover -s tests -v
+python3 -m camera_lab.analyze data/blue-center.json --out results/first-fixture
+python3 -m camera_lab.learn data/TOY-learning.csv</code></pre>
+<p>The reference software tests should pass. Read the image-analysis report and the learning results, then explain what each reported value means. Results directories must be new: choose a suffix like -02 for repeats. The synthetic fixture route works without a robot and can keep the lesson moving while a hardware problem is investigated.</p>
+<h2>5 Capture once, then inspect</h2>
+<pre><code>python3 -m camera_lab.capture --out captures/first-real
+python3 -m camera_lab.analyze captures/first-real/frame.json --out results/first-real</code></pre>
+<p>Capture starts only the camera. It writes RGB data and a viewable SVG. Analysis writes report.json, image.svg with overlays, and mask.svg. A folder may remain empty after a failed capture; keep the error in your notes and choose a new trial name after fixing the cause.</p>
+<p>To inspect through an SSH-only setup, run this on your LAPTOP from a folder where you want the results:</p>
+<pre><code>scp -r YOUR_USER@YOUR_PI_IP:~/camera-lab/captures/first-real ./first-real-capture
+scp -r YOUR_USER@YOUR_PI_IP:~/camera-lab/results/first-real ./first-real-analysis</code></pre>
+<p>Open the copied SVGs in your laptop browser. JSON opens in an editor. Do not assume a preview window can appear inside an SSH terminal. The capture program intentionally requires no graphical desktop.</p>
+<h2>6 Optional vendor preview</h2>
+<p>Close the capture process first. Run python3 -m camera_lab.vilib_preview --seconds 30, then use http://YOUR_PI_IP:9000/mjpg on the same local network. Add --blue only when doctor reports color_detect is available. A stream opens a local-network web endpoint; do not expose the port to the internet. The program ends after the requested time or Ctrl+C and closes Vilib&#x27;s camera.</p>
+<p>The official ball/face examples can move PiDog. Their commands belong in the later supervised robot activity, not in a stationary camera check. Today&#x27;s lesson links their pages for video viewing and code reading.</p>
+<h2>Troubleshooting by layer</h2>
+<div class="table-wrap"><table><thead><tr><th>Symptom</th><th>First useful check</th><th>Next action</th></tr></thead><tbody><tr><td>No module named camera_lab</td><td>pwd and ls</td><td>Return to the extracted project root; use -m as shown</td></tr><tr><td>No module named picamera2 or PIL</td><td>doctor executable and paths</td><td>Use system Python; install only missing OS packages</td></tr><tr><td>No cameras available</td><td>list-cameras</td><td>Check hardware with power disconnected; verify sensor support</td></tr><tr><td>Camera already acquired / resource busy</td><td>Another preview, app or process may own it</td><td>Stop the known owner cleanly before opening another</td></tr><tr><td>Permission denied</td><td>Compare interpreter/user with working examples</td><td>Have tutor inspect group/device permissions; do not blindly run all code as root</td></tr><tr><td>No desktop preview</td><td>You are using SSH</td><td>Inspect saved SVGs on laptop or optional web preview</td></tr><tr><td>Red object appears blue</td><td>Confirm explicit PIL RGB conversion</td><td>Inspect known red and blue samples before changing thresholds</td></tr><tr><td>Image upside down or left/right surprising</td><td>Capture labeled L/R targets</td><td>Record orientation; deliberately transform images before defining navigation axes</td></tr><tr><td>Empty mask on blue object</td><td>Inspect actual HSV, illumination and crop</td><td>Tune on calibration images, changing one setting at a time</td></tr><tr><td>Dark image reports unknown</td><td>Mean value below quality threshold</td><td>Improve capture conditions; do not convert unknown to clear</td></tr><tr><td>FileExistsError</td><td>Output directory already exists</td><td>Use a new trial identifier; preserve previous evidence</td></tr></tbody></table></div>
+<h2>Notebook use</h2>
+<p>Each lesson has writable fields and checkboxes. Browser storage is local and can be blocked or cleared. Export an editable JSON backup from each document after class; restore it on that same document to continue elsewhere. Export Markdown for readable notes. Print / PDF includes answers and writing space. Exported notes do not embed your experiment images; preserve the captures and results folders alongside them.</p>
+<section class="note"><label for="setup_record">Record the exact interpreter, camera enumeration, package versions, completed checks, and any unresolved blocker.</label><textarea id="setup_record" data-note rows="7"></textarea><div class="print-answer" style="min-height:10.5em"></div></section><footer>November 3, 2026 · Save evidence and notes together. No browser feature connects to the robot.</footer></main><script src="../browser-core.js"></script><script src="../notebook.js"></script></body></html>
