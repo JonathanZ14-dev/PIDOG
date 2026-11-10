@@ -1,0 +1,295 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PYTHON-MAP.md</title><style>*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#163c40;font:18px/1.65 system-ui,sans-serif}header{background:#163c40;color:white;padding:22px 6%;font-weight:700;letter-spacing:.05em}main{max-width:1050px;margin:auto;padding:32px 24px 70px}h1{font-size:clamp(32px,5vw,54px);line-height:1.15}h2{margin-top:2em;line-height:1.3}a{color:#0b6763}nav{display:flex;gap:16px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #b9ceca}pre{background:#102d33;color:#e9f3f0;padding:22px;border-radius:10px;overflow:auto;font:14px/1.7 ui-monospace,monospace}code{font-family:ui-monospace,monospace}table{border-collapse:collapse;width:100%;font-size:15px;display:block;overflow:auto}td,th{padding:12px;border:1px solid #b9ceca;text-align:left;vertical-align:top}th{background:#deebe4}img{max-width:100%}.card{background:white;padding:22px;border:1px solid #c4d6cf;border-radius:12px;margin:18px 0}.note{border-left:4px solid #d8a45d;background:#fff;padding:18px;margin:26px 0}textarea{width:100%;font:17px/1.6 system-ui;border:1px solid #a9c4ba;padding:12px;min-height:150px}button{font:inherit;background:#0b6763;color:white;border:0;border-radius:6px;padding:9px 15px;margin:8px;cursor:pointer}.print-note{display:none;white-space:pre-wrap}summary{cursor:pointer;font-weight:bold;font-size:22px}.tag{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#47766b}@media print{body{background:white;color:black;font-size:11pt}header,nav,.toolbar,button,textarea{display:none}.print-note{display:block;min-height:3cm}main{padding:0;max-width:none}pre{white-space:pre-wrap;background:#eef3ef;color:black;font-size:8pt}h2{break-after:avoid}tr{break-inside:avoid}}</style></head><body><header>JONATHAN / PIDOG PYTHON LAB</header><main><nav><a href="index.html">Session</a><a href="setup.html">Start here</a><a href="code-tour.html">Full code</a><a href="python-map.html">Python map</a><a href="extensions.html">Extensions + tutorials</a><a href="iPad-Notes.pdf">iPad notes PDF</a></nav><div class="toolbar"><button onclick="window.print()">Print / PDF</button></div><h1>Python concepts you can point to in this project</h1>
+<p>Use this as a reference during the lesson, not as another worksheet. Read the complete commented source in code-tour.html or your editor. Every custom callable is listed below.</p>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Concrete example</th>
+<th>What it means here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Variable</td>
+<td><code>frame = camera.read()</code></td>
+<td>A name refers to the returned image array</td>
+</tr>
+<tr>
+<td>Types</td>
+<td>int, float, str, bool, None</td>
+<td>Count, measurement, label, decision, unknown</td>
+</tr>
+<tr>
+<td>Tuple</td>
+<td><code>(640, 480)</code></td>
+<td>An ordered fixed pair; this API expects width then height</td>
+</tr>
+<tr>
+<td>List</td>
+<td><code>["left", "center", "right"]</code></td>
+<td>An ordered collection that can be indexed</td>
+</tr>
+<tr>
+<td>Dictionary</td>
+<td><code>record["found"]</code></td>
+<td>Look up a value using its meaningful key</td>
+</tr>
+<tr>
+<td>Array</td>
+<td><code>frame[90:150, x:x+30]</code></td>
+<td>Select rows and columns of a NumPy image</td>
+</tr>
+<tr>
+<td>Slicing</td>
+<td><code>bgr.shape[:2]</code></td>
+<td>Take the first two shape entries</td>
+</tr>
+<tr>
+<td>Function</td>
+<td><code>analyze(frame, settings)</code></td>
+<td>Call reusable behavior with explicit inputs</td>
+</tr>
+<tr>
+<td>Parameter vs argument</td>
+<td><code>bgr</code> vs <code>frame</code></td>
+<td>Parameter is the function's local input name; argument is the supplied value</td>
+</tr>
+<tr>
+<td>Return/unpacking</td>
+<td><code>annotated, mask, record = analyze(...)</code></td>
+<td>Assign the three returned tuple members</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td><code>area</code> inside analyze</td>
+<td>A local name is not automatically available in main</td>
+</tr>
+<tr>
+<td>Condition</td>
+<td><code>area &gt;= settings.min_pixels</code></td>
+<td>Choose behavior using a Boolean comparison</td>
+</tr>
+<tr>
+<td>Loop</td>
+<td><code>for number in range(args.frames)</code></td>
+<td>Repeat a bounded number of observations</td>
+</tr>
+<tr>
+<td>Comprehension</td>
+<td><code>[int(v) for v in stats[biggest]]</code></td>
+<td>Build a list by converting each value</td>
+</tr>
+<tr>
+<td>lambda</td>
+<td><code>lambda i: stats[i, cv2.CC_STAT_AREA]</code></td>
+<td>Tiny function telling max how to rank candidates</td>
+</tr>
+<tr>
+<td>Class/object</td>
+<td><code>Settings(...)</code></td>
+<td>Create one instance containing experiment settings</td>
+</tr>
+<tr>
+<td>Method/attribute</td>
+<td><code>camera.read()</code>, <code>self.device</code></td>
+<td>Object behavior and object-owned data</td>
+</tr>
+<tr>
+<td>Decorator</td>
+<td><code>@dataclass</code></td>
+<td>Ask Python to generate standard data-container methods</td>
+</tr>
+<tr>
+<td>Type annotation</td>
+<td><code>min_pixels: int</code></td>
+<td>Documents an intended type; validation still matters</td>
+</tr>
+<tr>
+<td>Wrapper</td>
+<td>Camera</td>
+<td>A smaller interface around Picamera2 with clear ownership</td>
+</tr>
+<tr>
+<td>Context manager</td>
+<td><code>with owner as camera:</code></td>
+<td>Pair resource acquisition and cleanup</td>
+</tr>
+<tr>
+<td>Exception</td>
+<td><code>raise ValueError(...)</code></td>
+<td>Signal that an input contract was violated</td>
+</tr>
+<tr>
+<td>Import/package/module</td>
+<td><code>.perception</code>, vision/, run.py</td>
+<td>Reuse code, group modules, keep responsibilities separate</td>
+</tr>
+<tr>
+<td>Main guard</td>
+<td><code>if __name__ == "__main__":</code></td>
+<td>Run the entry point only when executed, not imported</td>
+</tr>
+<tr>
+<td>File context</td>
+<td><code>with path.open("a") as log:</code></td>
+<td>Close the file even if writing fails</td>
+</tr>
+<tr>
+<td>Serialization</td>
+<td><code>json.dumps(record)</code></td>
+<td>Convert Python values into portable text</td>
+</tr>
+</tbody>
+</table>
+<h2>Every custom function and method</h2>
+<table>
+<thead>
+<tr>
+<th>Callable</th>
+<th>Inputs -&gt; return</th>
+<th>Responsibility / side effects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Camera.<strong>init</strong></td>
+<td>no explicit inputs -&gt; new instance</td>
+<td>Construct Picamera2; can fail if unavailable</td>
+</tr>
+<tr>
+<td>Camera.<strong>enter</strong></td>
+<td>instance -&gt; instance</td>
+<td>Configure/start/warm camera; close on startup failure</td>
+</tr>
+<tr>
+<td>Camera.read</td>
+<td>instance -&gt; BGR array</td>
+<td>Capture a new processed image; convert channel order</td>
+</tr>
+<tr>
+<td>Camera.<strong>exit</strong></td>
+<td>instance + exception details -&gt; None</td>
+<td>Close camera; do not suppress the original exception</td>
+</tr>
+<tr>
+<td>Settings generated initializer</td>
+<td>color, min_pixels, clean -&gt; instance</td>
+<td>Generated by dataclass, stores values then validates</td>
+</tr>
+<tr>
+<td>Settings.<strong>post_init</strong></td>
+<td>instance -&gt; None</td>
+<td>Reject unsupported color or nonpositive/noninteger area</td>
+</tr>
+<tr>
+<td>region_name</td>
+<td>horizontal centroid, image width -&gt; str</td>
+<td>Assign image third; no hardware or files</td>
+</tr>
+<tr>
+<td>analyze</td>
+<td>BGR array, Settings -&gt; image, mask, dict</td>
+<td>Process and draw on a copy; preserve input array</td>
+</tr>
+<tr>
+<td>area-ranking lambda</td>
+<td>component index -&gt; area</td>
+<td>Tell max which connected component wins</td>
+</tr>
+<tr>
+<td>demo_image</td>
+<td>position string -&gt; BGR array</td>
+<td>Make a known synthetic image in memory</td>
+</tr>
+<tr>
+<td>save_image</td>
+<td>Path, array -&gt; None</td>
+<td>Write temporary PNG then replace displayed file</td>
+</tr>
+<tr>
+<td>write_page</td>
+<td>output directory Path -&gt; None</td>
+<td>Write an HTML viewer for saved results</td>
+</tr>
+<tr>
+<td>run.main</td>
+<td>command-line arguments -&gt; None</td>
+<td>Validate settings; own source; loop; save observations</td>
+</tr>
+<tr>
+<td>play.main</td>
+<td>no inputs -&gt; None</td>
+<td>Run three known scenes and print observations</td>
+</tr>
+<tr>
+<td>choose_nearest_center (optional)</td>
+<td>stats, centers, width, min_pixels -&gt; index or None</td>
+<td>Alternative selection policy in EXTENSIONS.md</td>
+</tr>
+</tbody>
+</table>
+<p>The web viewer also contains a JavaScript function, update(), which refreshes image URLs and fetches latest.json. It is presentation code, not Python perception code. The lesson notebook's JavaScript saves typed notes; it does not run camera commands.</p>
+<h2>Computer vision terms in plain language</h2>
+<p><strong>BGR/RGB:</strong> two channel order conventions, not different physical colors. <strong>HSV:</strong> another numerical representation useful for certain color rules. <strong>Binary mask:</strong> yes/no pixel selection. <strong>Connected component:</strong> a group of touching selected pixels. <strong>Centroid:</strong> mean position of selected pixels in a component. <strong>Bounding box:</strong> rectangle enclosing a component. <strong>Morphological opening:</strong> erosion followed by dilation using a small neighborhood. <strong>Threshold:</strong> a decision boundary chosen for a quantity. <strong>Inference:</strong> applying a model or procedure to an input; our core rule has no learned neural network. <strong>Training:</strong> adjusting model parameters using data and an objective; changing min_pixels by hand is tuning, not neural-network training. <strong>False positive:</strong> a retained region that does not match your intended target definition. <strong>False negative:</strong> an intended target that is missed. <strong>Contract:</strong> agreed input/output meaning across modules.</p>
+<h2>Troubleshooting by layer</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Layer to check</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No module named vision</td>
+<td>Shell location</td>
+<td>cd to the student folder</td>
+</tr>
+<tr>
+<td>No module named cv2</td>
+<td>Python environment</td>
+<td>Use Pi system Python; install missing OS packages only</td>
+</tr>
+<tr>
+<td>Camera busy</td>
+<td>Device ownership</td>
+<td>Stop the known preview/Vilib process before retrying</td>
+</tr>
+<tr>
+<td>Picamera2 cannot find camera</td>
+<td>Camera stack/hardware</td>
+<td>Reuse your previously working camera check; power off before touching ribbon</td>
+</tr>
+<tr>
+<td>Original looks fine but mask is empty</td>
+<td>Processing</td>
+<td>Check selected color, lighting, HSV bounds and minimum area</td>
+</tr>
+<tr>
+<td>Huge unexpected box</td>
+<td>Task definition</td>
+<td>Inspect blue background or connected objects</td>
+</tr>
+<tr>
+<td>Browser cannot connect</td>
+<td>Network/display</td>
+<td>Verify server terminal, port, IP and same trusted LAN</td>
+</tr>
+<tr>
+<td>Browser looks frozen</td>
+<td>Time/display</td>
+<td>Check timestamp, frame count and whether capture ended</td>
+</tr>
+<tr>
+<td>FileExistsError</td>
+<td>Evidence storage</td>
+<td>Use a new output folder</td>
+</tr>
+<tr>
+<td>JSON null distance</td>
+<td>Correct output</td>
+<td>This module does not measure range</td>
+</tr>
+</tbody>
+</table></main></body></html>

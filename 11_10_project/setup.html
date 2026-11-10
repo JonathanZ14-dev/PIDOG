@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>START-HERE.md</title><style>*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#163c40;font:18px/1.65 system-ui,sans-serif}header{background:#163c40;color:white;padding:22px 6%;font-weight:700;letter-spacing:.05em}main{max-width:1050px;margin:auto;padding:32px 24px 70px}h1{font-size:clamp(32px,5vw,54px);line-height:1.15}h2{margin-top:2em;line-height:1.3}a{color:#0b6763}nav{display:flex;gap:16px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #b9ceca}pre{background:#102d33;color:#e9f3f0;padding:22px;border-radius:10px;overflow:auto;font:14px/1.7 ui-monospace,monospace}code{font-family:ui-monospace,monospace}table{border-collapse:collapse;width:100%;font-size:15px;display:block;overflow:auto}td,th{padding:12px;border:1px solid #b9ceca;text-align:left;vertical-align:top}th{background:#deebe4}img{max-width:100%}.card{background:white;padding:22px;border:1px solid #c4d6cf;border-radius:12px;margin:18px 0}.note{border-left:4px solid #d8a45d;background:#fff;padding:18px;margin:26px 0}textarea{width:100%;font:17px/1.6 system-ui;border:1px solid #a9c4ba;padding:12px;min-height:150px}button{font:inherit;background:#0b6763;color:white;border:0;border-radius:6px;padding:9px 15px;margin:8px;cursor:pointer}.print-note{display:none;white-space:pre-wrap}summary{cursor:pointer;font-weight:bold;font-size:22px}.tag{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#47766b}@media print{body{background:white;color:black;font-size:11pt}header,nav,.toolbar,button,textarea{display:none}.print-note{display:block;min-height:3cm}main{padding:0;max-width:none}pre{white-space:pre-wrap;background:#eef3ef;color:black;font-size:8pt}h2{break-after:avoid}tr{break-inside:avoid}}</style></head><body><header>JONATHAN / PIDOG PYTHON LAB</header><main><nav><a href="index.html">Session</a><a href="setup.html">Start here</a><a href="code-tour.html">Full code</a><a href="python-map.html">Python map</a><a href="extensions.html">Extensions + tutorials</a><a href="iPad-Notes.pdf">iPad notes PDF</a></nav><div class="toolbar"><button onclick="window.print()">Print / PDF</button></div><h1>PiDog Python Vision Lab</h1>
+<p><strong>90 minutes · November 10, 2026 · Jonathan's student edition</strong></p>
+<p>Today you will make PiDog locate a blue or green marker, show the pixels used as evidence, and report whether the marker is left, center, or right in its image. You will run complete programs, read their comments, predict results, change one thing, and test again. There are no unfinished code exercises. Your goal is to explain and modify a working system.</p>
+<p>The core activity is a small color-based perception module. It is deliberately transparent: you can inspect every decision. Unlike a pretrained object detector, it has no learned weights and cannot name arbitrary objects. This helps us understand the Python pipeline that can later surround a learned detector.</p>
+<h2>Open the materials</h2>
+<p>Open <strong>index.html</strong> on your laptop for the lesson, <strong>code-tour.html</strong> for all the commented source, and <strong>iPad-Notes.pdf</strong> in Apple Files, Goodnotes, or Notability for handwriting. You can also type into the lesson's notes areas in a browser. Export notes before closing or moving the folder; local browser storage is not a backup. The browser guide is an offline document, not an editor that runs Python.</p>
+<p>All code is in vision/. Copy this student folder to PiDog. The teacher folder is a separate companion and is not required to run anything. Bring a blue and a green card or object, a ruler, and something with a similar color to use as a distractor. Keep the robot stationary while moving the targets.</p>
+<h2>Before the 90-minute lesson: prepare with your teacher</h2>
+<p>From your laptop, in the directory containing student/:</p>
+<pre><code class="language-sh">scp -r student buck@buck.local:~/pidog-python90
+ssh buck@buck.local
+cd ~/pidog-python90
+python3 -c &quot;import cv2, numpy, picamera2; from PIL import Image; print(cv2.__version__)&quot;
+</code></pre>
+<p>Use your existing SSH address if it differs. Stop the earlier camera preview or Vilib program so only one program owns the camera. Run with the Pi's system Python. If imports already work, do not reinstall anything. If they fail, your teacher can install missing packages with:</p>
+<pre><code class="language-sh">sudo apt update
+sudo apt install python3-opencv python3-numpy python3-picamera2 python3-pil
+</code></pre>
+<p>The commands below belong in a terminal, not at a Python <code>&gt;&gt;&gt;</code> prompt. <code>python3 -m vision.run</code> means run the module named run inside the package vision. Start in the folder containing vision/. Our programs do not import Pidog or move servos.</p>
+<p>First confirm the software without needing the camera:</p>
+<pre><code class="language-sh">python3 -m vision.play
+python3 -m vision.run --demo --frames 3 --interval 1 --out runs/demo01
+</code></pre>
+<p>Then capture one real observation:</p>
+<pre><code class="language-sh">python3 -m vision.run --camera --out runs/blue01
+</code></pre>
+<p>Every run needs a new output folder, such as blue02. The folder contains original.png, mask.png, annotated.png, latest.json, history.jsonl, and index.html. Images contain only the latest frame; history.jsonl keeps all observation records. Preserve a particular picture using a one-frame run before a controlled comparison.</p>
+<h2>See results on the laptop or iPad</h2>
+<p>Open a SECOND SSH terminal on the Pi and run:</p>
+<pre><code class="language-sh">cd ~/pidog-python90
+python3 -m http.server 8000 --bind 0.0.0.0 --directory runs
+</code></pre>
+<p>On the same trusted Wi-Fi, open <strong>http://buck.local:8000/blue01/</strong> on the laptop or iPad. If the hostname does not resolve, run <code>hostname -I</code> on the Pi and use its local IP instead. This simple server has no login and shares the runs folder with devices that can reach the Pi; stop it with Ctrl+C after class. Do not expose or forward this port to the internet.</p>
+<p>For repeated observations, in your FIRST SSH terminal:</p>
+<pre><code class="language-sh">python3 -m vision.run --camera --frames 30 --interval 1 --out runs/moving01
+</code></pre>
+<p>Open http://buck.local:8000/moving01/ after its first frame. Move the marker slowly. The viewer refreshes every three seconds; processing and saving add time. It is not a high-frame-rate stream. Check timestamps: the last image stays visible after the program stops. JSON and images may briefly show adjacent frames during an update; use a completed one-frame run for exact comparisons.</p>
+<p>If local networking blocks the viewer, copy results to your laptop:</p>
+<pre><code class="language-sh">scp -r buck@buck.local:~/pidog-python90/runs/blue01 ./blue01-results
+</code></pre>
+<p>Open the PNGs and latest.json directly. No graphical desktop is needed on the Pi. If the camera fails, use --demo or --image with an earlier PiDog picture while you investigate the camera separately.</p>
+<h2>Optional laptop replay</h2>
+<p>On a laptop inside student/, create a separate environment. This does not replace PiDog's installed libraries:</p>
+<pre><code class="language-sh">python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements-laptop.txt
+python3 -m vision.run --image blue01-results/original.png --out runs/laptop01
+</code></pre>
+<p>Windows: use <code>.venv\Scripts\python.exe</code> in place of python3, and skip the activation command above. Camera mode is for the Raspberry Pi; it does not remotely open PiDog's camera from a laptop.</p></main></body></html>

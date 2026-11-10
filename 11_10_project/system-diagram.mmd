@@ -1,0 +1,8 @@
+flowchart TD
+ scene["Scene, lens and sensor"] --> stack["CSI ribbon and Pi camera stack"]
+ stack --> camera["Camera wrapper: Picamera2 to BGR"]
+ camera --> runner["Runner: source ownership and loop"]
+ replay["Saved image or synthetic fixture"] --> runner
+ runner --> analyze["Analyze: HSV, mask, components, evidence"]
+ analyze --> files["PNG images and JSON observations"]
+ files --> browser["Browser and iPad notes"]

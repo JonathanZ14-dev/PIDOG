@@ -1,0 +1,244 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Complete commented Python</title><style>*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#163c40;font:18px/1.65 system-ui,sans-serif}header{background:#163c40;color:white;padding:22px 6%;font-weight:700;letter-spacing:.05em}main{max-width:1050px;margin:auto;padding:32px 24px 70px}h1{font-size:clamp(32px,5vw,54px);line-height:1.15}h2{margin-top:2em;line-height:1.3}a{color:#0b6763}nav{display:flex;gap:16px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #b9ceca}pre{background:#102d33;color:#e9f3f0;padding:22px;border-radius:10px;overflow:auto;font:14px/1.7 ui-monospace,monospace}code{font-family:ui-monospace,monospace}table{border-collapse:collapse;width:100%;font-size:15px;display:block;overflow:auto}td,th{padding:12px;border:1px solid #b9ceca;text-align:left;vertical-align:top}th{background:#deebe4}img{max-width:100%}.card{background:white;padding:22px;border:1px solid #c4d6cf;border-radius:12px;margin:18px 0}.note{border-left:4px solid #d8a45d;background:#fff;padding:18px;margin:26px 0}textarea{width:100%;font:17px/1.6 system-ui;border:1px solid #a9c4ba;padding:12px;min-height:150px}button{font:inherit;background:#0b6763;color:white;border:0;border-radius:6px;padding:9px 15px;margin:8px;cursor:pointer}.print-note{display:none;white-space:pre-wrap}summary{cursor:pointer;font-weight:bold;font-size:22px}.tag{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#47766b}@media print{body{background:white;color:black;font-size:11pt}header,nav,.toolbar,button,textarea{display:none}.print-note{display:block;min-height:3cm}main{padding:0;max-width:none}pre{white-space:pre-wrap;background:#eef3ef;color:black;font-size:8pt}h2{break-after:avoid}tr{break-inside:avoid}}</style></head><body><header>JONATHAN / PIDOG PYTHON LAB</header><main><nav><a href="index.html">Session</a><a href="setup.html">Start here</a><a href="code-tour.html">Full code</a><a href="python-map.html">Python map</a><a href="extensions.html">Extensions + tutorials</a><a href="iPad-Notes.pdf">iPad notes PDF</a></nav><div class="toolbar"><button onclick="window.print()">Print / PDF</button></div><h1>The complete Python code</h1><p>Read, run, predict, change, test. These are complete files, not blanks. The browser displays code; edit the .py files on the Pi or in your editor. The inline comments explain each responsibility.</p><section class="card"><h2>perception.py</h2><a href="vision/perception.py">Open source file</a><pre><code>&quot;&quot;&quot;Image -&gt; evidence. No camera ownership, file writing, or motor commands.&quot;&quot;&quot;
+from dataclasses import dataclass  # Generates an initializer for a data container.
+import cv2
+import numpy as np
+
+# Dict maps color names to lower/upper HSV tuples. OpenCV uint8 H:0..179, S/V:0..255.
+# These are starting ranges to investigate, not universal color definitions.
+RANGES = {&quot;blue&quot;: ((100, 80, 50), (135, 255, 255)),
+          &quot;green&quot;: ((40, 80, 50), (85, 255, 255))}
+
+
+@dataclass
+class Settings:
+    &quot;&quot;&quot;Experiment parameters are chosen by us; they are not learned weights.&quot;&quot;&quot;
+    color: str = &quot;blue&quot;  # Annotation describes intent; value supplies a default.
+    min_pixels: int = 300  # Minimum area of the largest connected colored region.
+    clean: bool = False  # Optional removal of speckles using morphology.
+
+    def __post_init__(self):
+        # dataclass calls this after assigning fields. Reject invalid settings early.
+        if self.color not in RANGES:
+            raise ValueError(&quot;Choose blue or green&quot;)
+        if type(self.min_pixels) is not int or self.min_pixels &lt; 1:
+            raise ValueError(&quot;min_pixels must be a positive integer&quot;)
+
+
+def region_name(center_x, width):
+    &quot;&quot;&quot;Describe an IMAGE position, not a safe walking direction.&quot;&quot;&quot;
+    if center_x &lt; width / 3:
+        return &quot;left&quot;
+    elif center_x &lt; 2 * width / 3:
+        return &quot;center&quot;
+    else:
+        return &quot;right&quot;
+
+
+def analyze(bgr, settings):
+    &quot;&quot;&quot;Return (annotated_image, mask, evidence_dict) from a uint8 BGR array.
+
+    This is a hand-written color rule, not semantic object recognition.
+    &quot;&quot;&quot;
+    if bgr is None or bgr.dtype != np.uint8 or bgr.ndim != 3 or bgr.shape[2] != 3:
+        raise ValueError(&quot;Expected a uint8 BGR image with three channels&quot;)
+    height, width = bgr.shape[:2]  # Slice the first two dimensions; unpack the pair.
+    if height == 0 or width == 0:
+        raise ValueError(&quot;Image must not be empty&quot;)
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)  # Represent color differently.
+    lower, upper = RANGES[settings.color]  # Dictionary lookup, then tuple unpacking.
+    mask = cv2.inRange(hsv, np.array(lower, dtype=np.uint8),
+                       np.array(upper, dtype=np.uint8))
+    # Mask pixels: 255 matched all bounds; 0 did not. This is not confidence.
+    if settings.clean:
+        kernel = np.ones((3, 3), dtype=np.uint8)  # Neighborhood for the operation.
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        # Opening removes speckles but may also remove thin real features.
+    count, labels, stats, centers = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    # Connected components group touching foreground pixels. Label 0 is background.
+    candidates = list(range(1, count))  # [] if no foreground regions exist.
+    evidence = {&quot;color&quot;: settings.color, &quot;found&quot;: False, &quot;image_region&quot;: &quot;unknown&quot;,
+                &quot;area_pixels&quot;: 0, &quot;box&quot;: None, &quot;center&quot;: None,
+                &quot;width&quot;: width, &quot;height&quot;: height, &quot;distance_cm&quot;: None}
+    # None means unknown; it is not zero distance or proof that a path is clear.
+    annotated = bgr.copy()  # Preserve the original pixels for comparison.
+    if candidates:  # Empty lists are false; nonempty lists are true.
+        # lambda defines a short ranking function; max selects the largest region.
+        biggest = max(candidates, key=lambda i: stats[i, cv2.CC_STAT_AREA])
+        area = int(stats[biggest, cv2.CC_STAT_AREA])  # NumPy int -&gt; JSON-friendly int.
+        evidence[&quot;area_pixels&quot;] = area  # Keep measurement even below the threshold.
+        if area &gt;= settings.min_pixels:  # Equality is included.
+            x, y, box_w, box_h, _ = [int(v) for v in stats[biggest]]
+            cx, cy = [float(v) for v in centers[biggest]]  # Foreground-pixel centroid.
+            evidence.update({&quot;found&quot;: True, &quot;image_region&quot;: region_name(cx, width),
+                             &quot;box&quot;: [x, y, x + box_w, y + box_h], &quot;center&quot;: [cx, cy]})
+            # Stored upper box coordinates are exclusive; drawing endpoints aren&#x27;t.
+            cv2.rectangle(annotated, (x, y), (x + box_w - 1, y + box_h - 1),
+                          (0, 255, 255), 2)
+            cv2.circle(annotated, (round(cx), round(cy)), 4, (0, 0, 255), -1)
+    message = f&quot;{settings.color}: {evidence[&#x27;image_region&#x27;]} | area={evidence[&#x27;area_pixels&#x27;]}&quot;
+    cv2.putText(annotated, message, (10, 25), cv2.FONT_HERSHEY_SIMPLEX,
+                .6, (0, 255, 255), 2)
+    return annotated, mask, evidence  # A tuple lets the caller unpack three results.
+
+
+def demo_image(position=&quot;center&quot;):
+    &quot;&quot;&quot;Known synthetic scene for a repeatable test, not a PiDog photograph.&quot;&quot;&quot;
+    frame = np.full((240, 320, 3), 190, dtype=np.uint8)  # Gray BGR canvas.
+    x = {&quot;left&quot;: 20, &quot;center&quot;: 140, &quot;right&quot;: 260}[position]
+    frame[90:150, x:x + 30] = (255, 0, 0)  # Rows then columns; blue in BGR.
+    return frame
+</code></pre></section><section class="card"><h2>camera.py</h2><a href="vision/camera.py">Open source file</a><pre><code>&quot;&quot;&quot;Camera wrapper: owns one Pi CSI camera and returns OpenCV BGR images.&quot;&quot;&quot;
+import time  # Standard-library module for the warm-up delay.
+
+
+class Camera:
+    &quot;&quot;&quot;A class is a blueprint; each instance stores its own device in self.&quot;&quot;&quot;
+
+    def __init__(self):
+        # Delayed import lets saved-image replay work without Pi camera libraries.
+        from picamera2 import Picamera2
+        self.device = Picamera2()  # Create the hardware-facing library object.
+
+    def __enter__(self):
+        # Python calls this when entering `with Camera() as camera:`.
+        try:
+            config = self.device.create_still_configuration(
+                main={&quot;size&quot;: (640, 480)}, queue=False  # Dict containing a tuple.
+            )
+            self.device.configure(config)
+            self.device.start()
+            time.sleep(2)  # Allow exposure and white balance to begin settling.
+            return self  # The variable after `as` refers to this instance.
+        except BaseException:
+            # __exit__ is not called if __enter__ fails; close here as well.
+            self.device.close()
+            raise  # Keep the original error, including an interrupted startup.
+
+    def read(self):
+        &quot;&quot;&quot;Return uint8 pixels with shape (height, width, 3), in BGR order.&quot;&quot;&quot;
+        import cv2  # OpenCV handles image conversions.
+        import numpy as np  # NumPy stores arrays of numbers.
+        rgb = self.device.capture_image(&quot;main&quot;).convert(&quot;RGB&quot;)
+        # Explicit Pillow RGB conversion avoids guessing camera buffer order.
+        return cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2BGR)
+
+    def __exit__(self, error_type, error_value, traceback):
+        # These arguments describe an exception, if any. None does not suppress it.
+        self.device.close()  # Also runs when the with-block raises an exception.
+</code></pre></section><section class="card"><h2>run.py</h2><a href="vision/run.py">Open source file</a><pre><code>&quot;&quot;&quot;Connect camera -&gt; perception -&gt; reports. Run from the student folder with -m.&quot;&quot;&quot;
+import argparse  # Converts command-line options into Python values.
+from contextlib import nullcontext  # Harmless with-block when replay needs no camera.
+from dataclasses import asdict  # Settings object -&gt; dictionary for JSON.
+from datetime import datetime, timezone
+import json  # Portable text format for dictionaries and lists.
+from pathlib import Path  # Paths with useful methods instead of manual slashes.
+import time
+import cv2
+from .camera import Camera  # Leading dot means another module in this package.
+from .perception import Settings, analyze, demo_image
+
+
+def save_image(path, pixels):
+    &quot;&quot;&quot;Finish writing before replacing a displayed image.&quot;&quot;&quot;
+    temp = path.with_name(&quot;tmp-&quot; + path.name)
+    if not cv2.imwrite(str(temp), pixels):  # OpenCV expects a filename string.
+        raise OSError(f&quot;Could not save {path}&quot;)
+    temp.replace(path)  # Rename a complete file in the same directory.
+
+
+def write_page(folder):
+    &quot;&quot;&quot;HTML/JavaScript display saved results; the browser does not open the camera.&quot;&quot;&quot;
+    # A triple-quoted string holds a multi-line document. No extra web library needed.
+    page = &#x27;&#x27;&#x27;&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+&lt;title&gt;PiDog observations&lt;/title&gt;&lt;style&gt;body{font:18px system-ui;margin:24px;background:#eef5f2;color:#143f43}img{width:min(100%,640px);display:block;margin-bottom:20px}pre{white-space:pre-wrap}&lt;/style&gt;
+&lt;h1&gt;PiDog observations&lt;/h1&gt;&lt;p&gt;Latest saved observation, not live video. Distance is unknown. No motor commands. Check the timestamp: refresh continues after capture ends. Images and JSON can briefly come from adjacent frames while files update.&lt;/p&gt;
+&lt;h2&gt;Original&lt;/h2&gt;&lt;img id=&quot;original&quot; alt=&quot;Original&quot;&gt;&lt;h2&gt;Color mask&lt;/h2&gt;&lt;img id=&quot;mask&quot; alt=&quot;Mask&quot;&gt;&lt;h2&gt;Annotated&lt;/h2&gt;&lt;img id=&quot;annotated&quot; alt=&quot;Annotated&quot;&gt;&lt;pre id=&quot;record&quot;&gt;&lt;/pre&gt;
+&lt;script&gt;async function update(){const q=Date.now();for(const n of [&#x27;original&#x27;,&#x27;mask&#x27;,&#x27;annotated&#x27;])document.getElementById(n).src=n+&#x27;.png?t=&#x27;+q;
+try{const r=await fetch(&#x27;latest.json?t=&#x27;+q);document.getElementById(&#x27;record&#x27;).textContent=JSON.stringify(await r.json(),null,2)}catch{document.getElementById(&#x27;record&#x27;).textContent=&#x27;Open latest.json separately if viewing from a file.&#x27;}}update();setInterval(update,3000);&lt;/script&gt;&lt;/html&gt;&#x27;&#x27;&#x27;
+    (folder / &quot;index.html&quot;).write_text(page, encoding=&quot;utf-8&quot;)
+
+
+def main():
+    &quot;&quot;&quot;Read settings, own the camera once, process a bounded sequence, then close.&quot;&quot;&quot;
+    parser = argparse.ArgumentParser(description=__doc__)
+    source = parser.add_mutually_exclusive_group(required=True)  # Choose exactly one.
+    source.add_argument(&quot;--camera&quot;, action=&quot;store_true&quot;)  # A Boolean flag.
+    source.add_argument(&quot;--image&quot;, type=Path)  # Repeatable saved-image experiment.
+    source.add_argument(&quot;--demo&quot;, action=&quot;store_true&quot;)  # No camera needed.
+    parser.add_argument(&quot;--out&quot;, type=Path, required=True)
+    parser.add_argument(&quot;--color&quot;, choices=[&quot;blue&quot;, &quot;green&quot;], default=&quot;blue&quot;)
+    parser.add_argument(&quot;--min-pixels&quot;, type=int, default=300)
+    parser.add_argument(&quot;--clean&quot;, action=&quot;store_true&quot;)
+    parser.add_argument(&quot;--frames&quot;, type=int, default=1)
+    parser.add_argument(&quot;--interval&quot;, type=float, default=1.0)
+    args = parser.parse_args()  # --help is provided automatically.
+    if not 1 &lt;= args.frames &lt;= 600 or not 0 &lt;= args.interval &lt;= 10:
+        parser.error(&quot;Use 1..600 frames and 0..10 seconds between observations&quot;)
+    if args.image and args.frames != 1:
+        parser.error(&quot;Saved-image replay uses --frames 1&quot;)
+    if args.min_pixels &lt; 1:
+        parser.error(&quot;min-pixels must be positive&quot;)
+    settings = Settings(args.color, args.min_pixels, args.clean)
+    args.out.mkdir(parents=True, exist_ok=False)  # Never erase an earlier trial.
+    owner = Camera() if args.camera else nullcontext(None)  # Conditional expression.
+    with owner as camera:
+        for number in range(args.frames):  # Finite loop: 0 through frames-1.
+            if args.camera:
+                frame = camera.read()
+            elif args.image:
+                frame = cv2.imread(str(args.image))  # imread already returns BGR.
+                if frame is None:
+                    raise ValueError(f&quot;Could not read image: {args.image}&quot;)
+            else:
+                frame = demo_image([&quot;left&quot;, &quot;center&quot;, &quot;right&quot;][number % 3])
+                # Modulo cycles through three positions in synthetic mode.
+            start = time.perf_counter()  # Monotonic clock for measuring duration.
+            annotated, mask, record = analyze(frame, settings)
+            record[&quot;processing_ms&quot;] = round(1000 * (time.perf_counter() - start), 2)
+            record[&quot;frame&quot;] = number
+            record[&quot;timestamp_utc&quot;] = datetime.now(timezone.utc).isoformat()
+            record[&quot;source&quot;] = &quot;camera&quot; if args.camera else (&quot;image&quot; if args.image else &quot;synthetic&quot;)
+            record[&quot;settings&quot;] = asdict(settings)
+            save_image(args.out / &quot;original.png&quot;, frame)
+            save_image(args.out / &quot;mask.png&quot;, mask)
+            save_image(args.out / &quot;annotated.png&quot;, annotated)
+            # Keep latest images only to limit SD-card writes; retain all text records.
+            temporary = args.out / &quot;tmp-latest.json&quot;
+            temporary.write_text(json.dumps(record, indent=2), encoding=&quot;utf-8&quot;)
+            temporary.replace(args.out / &quot;latest.json&quot;)
+            with (args.out / &quot;history.jsonl&quot;).open(&quot;a&quot;, encoding=&quot;utf-8&quot;) as log:
+                log.write(json.dumps(record) + &quot;\n&quot;)  # One JSON dictionary per line.
+            if number == 0:
+                write_page(args.out)  # Viewer appears after its first images exist.
+            print(f&quot;{number}: {record[&#x27;image_region&#x27;]} | area {record[&#x27;area_pixels&#x27;]}&quot;)
+            if number + 1 &lt; args.frames:
+                time.sleep(args.interval)  # Delay PLUS work; not a guaranteed frame rate.
+
+
+if __name__ == &quot;__main__&quot;:
+    # Importing this module defines functions. Running it calls main exactly once.
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(&quot;Stopped; camera context closed. Completed observations are saved.&quot;)
+</code></pre></section><section class="card"><h2>play.py</h2><a href="vision/play.py">Open source file</a><pre><code>&quot;&quot;&quot;A complete small playground. Run it, then change ONE value and run again.&quot;&quot;&quot;
+from .perception import Settings, analyze, demo_image
+
+
+def main():
+    # A list holds the three cases. The for-loop applies the same function to each.
+    for position in [&quot;left&quot;, &quot;center&quot;, &quot;right&quot;]:
+        frame = demo_image(position)  # NumPy image created without a camera.
+        settings = Settings(color=&quot;blue&quot;, min_pixels=300)
+        annotated, mask, observation = analyze(frame, settings)
+        # Names receive returned values. Unused images are okay in this text experiment.
+        print(position, observation[&quot;found&quot;], observation[&quot;image_region&quot;])
+        print(&quot;Array shape:&quot;, frame.shape, &quot;one BGR pixel:&quot;, frame[100, 25].tolist())
+        # Try min_pixels=2000. Predict which output changes before running.
+        # Try color=&quot;green&quot;. Does the scene change, or just the rule?
+
+
+if __name__ == &quot;__main__&quot;:
+    main()  # This guard keeps imports from starting our experiment accidentally.
+</code></pre></section><section class="card"><h2>__init__.py</h2><a href="vision/__init__.py">Open source file</a><pre><code>&quot;&quot;&quot;Related modules form a package. Importing this package starts nothing.&quot;&quot;&quot;
+</code></pre></section></main></body></html>
